@@ -1,0 +1,530 @@
+/*
+  DESIGN NOTES (kept here for future maintainers)
+
+  Subject: a passive scanner that produces a security "Health Report" for
+  a website — the brief itself already frames results as a report card
+  with a letter grade. So the visual concept leans into a real-world
+  parallel: a building/restaurant inspection certificate — a plain paper
+  background, a single bold letter grade, a tabular breakdown, and a
+  checklist of findings. No drop-shadow card kit, no neon terminal
+  cliche — flat hairline rules instead, like something that could be
+  printed and taped to a door.
+
+  Color:  --paper #ECEEE9 (cool sage paper, not the common warm cream)
+          --ink    #1E2A38 (soft navy-charcoal, not tinted near-black)
+          --line   #3C4A5C (slate, hairline rules/borders)
+          pass/warn/fail colors are FUNCTIONAL ONLY — they only ever
+          mark a check's actual status, never used decoratively.
+
+  Type:   Source Serif 4  — the grade letter + main headline (certificate
+                             authority/weight)
+          IBM Plex Sans   — all UI copy and body text
+          IBM Plex Mono   — reserved ONLY for literal technical strings
+                             (header values, cipher/protocol names) —
+                             never used for labels.
+
+  Layout: single centered column, content max ~640px (~80ch lines),
+          left-aligned checklist body text.
+
+  Motion: one moment — the grade stamps in with a brief scale+fade when
+          a scan completes. Progress text cross-fades between steps.
+          No hover-bounce choreography on every element.
+*/
+
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+/* ---------- header ---------- */
+
+.app-header {
+  text-align: left;
+  margin-bottom: 32px;
+}
+
+.app-header h1 {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.tagline {
+  color: var(--ink-soft);
+  font-size: 1.0625rem;
+  margin: 0 0 16px;
+}
+
+.disclaimer {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  border-left: 3px solid var(--warn);
+  padding: 8px 12px;
+  background: var(--warn-bg);
+}
+
+/* ---------- scan form ---------- */
+
+.scan-form {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: 24px;
+  margin-bottom: 8px;
+}
+
+.scan-form input {
+  flex: 1;
+  padding: 12px 14px;
+  font-size: 1rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 3px;
+}
+
+.scan-form input:focus-visible {
+  outline: 2px solid var(--line-strong);
+  outline-offset: 1px;
+}
+
+.scan-form input:disabled {
+  color: var(--ink-soft);
+  background: var(--paper);
+}
+
+.scan-form button {
+  padding: 12px 22px;
+  font-size: 1rem;
+  font-weight: 500;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.scan-form button:hover:not(:disabled) {
+  background: var(--line-strong);
+}
+
+.scan-form button:disabled {
+  background: var(--ink-soft);
+  cursor: default;
+}
+
+.scan-form button:focus-visible {
+  outline: 2px solid var(--line-strong);
+  outline-offset: 2px;
+}
+
+/* ---------- scanning indicator ---------- */
+
+.scanning-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 4px;
+  color: var(--ink-soft);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--line);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.scanning-indicator p {
+  margin: 0;
+  animation: fade-in 0.25s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- error ---------- */
+
+.error-box {
+  padding: 14px 16px;
+  border-left: 3px solid var(--fail);
+  background: var(--fail-bg);
+  color: var(--fail);
+  font-size: 0.95rem;
+  margin-top: 8px;
+}
+
+/* ---------- report certificate ---------- */
+
+.report {
+  margin-top: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  padding: 32px;
+  animation: stamp-in 0.35s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes stamp-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.report-url {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.report-score {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.report-score-max {
+  font-size: 1.25rem;
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.grade-badge {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.grade-badge[data-tier='high'] { color: var(--pass); border-color: var(--pass); }
+.grade-badge[data-tier='mid']  { color: var(--warn); border-color: var(--warn); }
+.grade-badge[data-tier='low']  { color: var(--fail); border-color: var(--fail); }
+
+/* ---------- breakdown bars ---------- */
+
+.breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.breakdown-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 56px;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.breakdown-label {
+  color: var(--ink-soft);
+}
+
+.breakdown-bar {
+  height: 8px;
+  background: var(--paper);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.breakdown-bar-fill {
+  height: 100%;
+  background: var(--ink);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.breakdown-score {
+  text-align: right;
+  font-family: var(--font-mono);
+  color: var(--ink-soft);
+}
+
+/* ---------- check lists ---------- */
+
+.check-list {
+  margin-bottom: 24px;
+}
+
+.check-list:last-child {
+  margin-bottom: 0;
+}
+
+.check-list h3 {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.check-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.check-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 22px;
+  position: relative;
+}
+
+.check-list li::before {
+  position: absolute;
+  left: 0;
+  top: 1px;
+  font-size: 0.95rem;
+}
+
+.check-list--passed li::before {
+  content: '✓';
+  color: var(--pass);
+}
+
+.check-list--failed li::before {
+  content: '✗';
+  color: var(--fail);
+}
+
+.check-name {
+  font-size: 0.95rem;
+}
+
+.check-value {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.check-fix {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  margin: 2px 0 0;
+  white-space: pre-line;
+}
+
+@media (max-width: 480px) {
+  .report {
+    padding: 22px;
+  }
+  .report-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .breakdown-row {
+    grid-template-columns: 60px 1fr 48px;
+  }
+}
+
+/* ---------- auth bar ---------- */
+
+.auth-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.auth-user {
+  color: var(--ink-soft);
+}
+
+.auth-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  font-family: inherit;
+}
+
+.link-btn.active {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.auth-form input {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-size: 0.9rem;
+  width: 130px;
+}
+
+.auth-form button[type='submit'] {
+  padding: 7px 14px;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.auth-error {
+  color: var(--fail);
+  font-size: 0.85rem;
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* ---------- gauge ---------- */
+
+.gauge {
+  width: 130px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.gauge-fill {
+  transition: stroke-dasharray 0.6s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.gauge-score {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+
+.report-header {
+  align-items: center;
+  gap: 16px;
+}
+
+.report-header-text {
+  flex: 1;
+}
+
+/* ---------- report actions ---------- */
+
+.report-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.btn-secondary {
+  padding: 9px 16px;
+  font-size: 0.88rem;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 3px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--paper);
+}
+
+.btn-secondary:disabled {
+  color: var(--ink-soft);
+  cursor: default;
+}
+
+/* ---------- history table ---------- */
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.history-table th {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  font-weight: 500;
+  font-size: 0.82rem;
+}
+
+.history-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mono-cell {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+
+.grade-chip {
+  font-family: var(--font-display);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+}
+
+.grade-chip[data-tier='high'] { color: var(--pass); }
+.grade-chip[data-tier='mid']  { color: var(--warn); }
+.grade-chip[data-tier='low']  { color: var(--fail); }
+
+.muted {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}

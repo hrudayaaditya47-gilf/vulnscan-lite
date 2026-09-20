@@ -1,0 +1,17 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# App data — never commit the local database
+api/vulnscan.db
+
+# Env files with real secrets
+.env
+
+# Editor/OS cruft
+.DS_Store
+*.swp
+
+# Frontend has its own .gitignore for node_modules/, dist/, etc.

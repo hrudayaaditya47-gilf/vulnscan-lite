@@ -1,0 +1,62 @@
+# Local/staging orchestration for all 4 services. For a real production
+# deploy, you'll likely run these as separate managed services instead
+# (see docs/DEPLOYMENT.md) — but this compose file works fine for
+# spinning the whole stack up on a single VPS too.
+#
+# IMPORTANT: set a real FLASK_SECRET_KEY before running this anywhere
+# reachable from the internet — the default here is a dev-only
+# placeholder and anyone who knows it can forge login sessions.
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  worker:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    command: celery -A celery_worker worker --loglevel=info --concurrency=4
+    restart: unless-stopped
+    depends_on:
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      VULNSCAN_DB_PATH: /app/api/data/vulnscan.db
+    volumes:
+      - db-data:/app/api/data
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - redis
+    ports:
+      - "5000:5000"
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      VULNSCAN_DB_PATH: /app/api/data/vulnscan.db
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:?set a real FLASK_SECRET_KEY in your .env file}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+    volumes:
+      - db-data:/app/api/data
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE: ${VITE_API_BASE:-http://localhost:5000}
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  redis-data:
+  db-data:

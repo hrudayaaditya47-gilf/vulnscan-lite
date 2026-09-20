@@ -1,0 +1,54 @@
+/*
+  Design tokens — see design notes in App.css header comment for the
+  reasoning behind this palette/type system (inspection-certificate
+  concept: bold grade, hairline rules, functional pass/warn/fail color).
+*/
+:root {
+  --paper: #eceee9;
+  --surface: #ffffff;
+  --ink: #1e2a38;
+  --ink-soft: #4a5868;
+  --line: #c7ccc4;
+  --line-strong: #3c4a5c;
+
+  --pass: #2f6f4e;
+  --pass-bg: #e7efe9;
+  --warn: #9c6b0b;
+  --warn-bg: #f5ecd9;
+  --fail: #a33b2b;
+  --fail-bg: #f5e6e2;
+
+  --font-display: 'Source Serif 4', Georgia, serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+button, input {
+  font-family: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

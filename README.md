@@ -7,6 +7,9 @@ against any site you're authorized to scan.
 
 > **Only scan websites you own.** This tool performs passive analysis only.
 
+**Live demo:** https://vulnscan-lite-theta.vercel.app/
+**API:** https://vulnscan-lite-5dzk.onrender.com
+
 ## Project layout
 
 ```
@@ -65,41 +68,21 @@ vulnscan-lite/
 - [x] PDF export — visually verified, including real multi-page output
 - [x] Scan history + lightweight auth (sessions, SQLite) — 19 tests (db + auth)
 - [x] React frontend — scan form, 2s polling, score gauge, auth, history view, PDF links
-      — builds and lints clean, **but not yet visually verified in a real browser**
-      (see Known Gaps below)
+      — builds and lints clean, and verified working in a real browser on the live deployment
 - [x] Scanning logic documentation (`docs/SCANNING_LOGIC.md`)
 - [x] Docker + docker-compose + deployment guide written
-      (**not build-tested** — no Docker available in the sandbox this was built in;
-      see Known Gaps below)
-- [ ] Actually deployed live somewhere — not done; needs your hosting account
-- [ ] Pushed to an actual GitHub repository — you'll need to do this yourself
+      (the API image builds and runs on Render; the full `docker-compose.yml`
+      stack has not been build-tested — see Known Gaps below)
+- [x] Deployed live — frontend on Vercel, API + worker on Render, Redis on Upstash (free tiers)
+- [x] Pushed to GitHub
 
 **102/102 automated tests passing** as of the last full run.
 
-## Known gaps — read this before treating it as "done"
+## Known gaps
 
-1. **The frontend has never been visually rendered.** Every backend flow it
-   calls has been proven live with real `curl` requests carrying real
-   cookies, so the *logic* is solid — but I have not personally seen the
-   page in a browser (the sandbox this was built in has no working
-   Chromium/Playwright, confirmed after trying both Playwright and apt).
-   Open `npm run dev` yourself and actually look at it before assuming the
-   layout is correct.
-2. **The Docker setup is unverified.** No Docker daemon is available in
-   the sandbox this was built in, so `docker-compose.yml` and both
-   Dockerfiles have been reasoned through carefully (and the compose YAML
-   has been syntax/structure-validated) but never actually built or run.
-   Try `docker compose up --build` yourself and tell me what breaks, if
-   anything.
-3. **No live deployment.** The brief's "Deployed" + disclaimer-banner
-   deliverable isn't satisfied yet. See `docs/DEPLOYMENT.md`.
-4. **Not pushed to GitHub.** The brief's "GitHub Repository" deliverable
-   needs you to actually create the repo and push this — commands are in
-   `docs/DEPLOYMENT.md`.
-5. **The Flask secret key defaults to a hardcoded dev value.** Set a real
-   `FLASK_SECRET_KEY` before deploying anywhere real, or every login
-   session can be forged. `docker-compose.yml` already refuses to start
-   without one being set.
+1. **docker-compose.yml is still untested.** The API image (`api/Dockerfile`) builds and runs on Render, but the full `docker compose up` stack has not been run.
+2. **Free-tier limits.** The Render server sleeps after about 15 minutes idle, so the first request can take up to a minute. Users and saved history live in SQLite on Render's temporary disk, so they are erased on every redeploy or restart.
+3. **Cross-site cookies.** Login cookies use `SameSite=None; Secure` because the frontend (Vercel) and API (Render) are on different domains. Browsers that block third-party cookies can break login.
 
 ## Running locally (without Docker)
 
@@ -150,6 +133,14 @@ Frontend on http://localhost:8080, API on http://localhost:5000.
 source venv/bin/activate
 python -m pytest tests/ -v
 ```
+
+## Live deployment setup
+
+| Part | Where | Notes |
+|---|---|---|
+| Redis | Upstash | URL starts with `rediss://` and ends with `?ssl_cert_reqs=CERT_NONE` |
+| API + Celery worker | Render (Docker, `api/Dockerfile`) | One service runs both. Env vars: `REDIS_URL`, `FLASK_SECRET_KEY`, `CORS_ORIGINS`, `RATELIMIT_STORAGE_URI=memory://` |
+| Frontend | Vercel (root directory `frontend`) | Build env var `VITE_API_BASE` is the Render URL |
 
 ## Deploying for real
 

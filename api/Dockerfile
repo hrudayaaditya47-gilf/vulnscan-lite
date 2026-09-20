@@ -26,4 +26,5 @@ WORKDIR /app/api
 # NOT `python app.py`, which uses Flask's dev server and is unsafe to
 # expose). docker-compose overrides this command for the worker service.
 EXPOSE 5000
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "60", "app:app"]
+RUN printf '#!/bin/bash\ncelery -A celery_worker worker --loglevel=info --concurrency=2 &\nexec gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 1 --threads 4 --timeout 60 app:app\n' > /app/api/render-start.sh && chmod +x /app/api/render-start.sh
+CMD ["bash", "/app/api/render-start.sh"]

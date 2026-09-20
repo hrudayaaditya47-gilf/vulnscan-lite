@@ -32,7 +32,8 @@ app = Flask(__name__)
 # var in any real deployment — this default is dev-only and predictable.
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-only-insecure-secret-key")
 app.config.update(
-    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_SECURE=True,
     SESSION_COOKIE_HTTPONLY=True,
 )
 

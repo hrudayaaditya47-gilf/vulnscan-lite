@@ -152,3 +152,12 @@ This is a lightweight passive health check, not a penetration test. It does **no
 - the strength of header values (only that the headers exist)
 
 A good score means the basic hygiene is in place. It does not mean a site is secure.
+
+## 8. Limits of the free hosted version
+
+The live demo runs on free hosting plans, which come with two limits:
+
+- **Saved history is not permanent.** User accounts and saved scan history are stored in a small database file on the server's temporary disk. The free plan erases that disk every time the server restarts or is redeployed, so accounts and history are lost at that point. A paid plan or an external database would keep them.
+- **The server sleeps when idle.** After about 15 minutes without visitors the free server goes to sleep, so the first request afterwards can take up to a minute.
+
+Scanning itself is not affected by either limit.

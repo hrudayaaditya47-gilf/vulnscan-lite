@@ -528,3 +528,90 @@
   color: var(--ink-soft);
   font-size: 0.9rem;
 }
+
+/* ---------- score trend (history page) ---------- */
+
+.trend {
+  border-bottom: 1px solid var(--line-strong);
+  padding: 8px 0 24px;
+  margin-bottom: 8px;
+}
+
+.trend-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trend h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.trend-select {
+  max-width: 100%;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 3px;
+}
+
+.trend-select:focus-visible {
+  outline: 2px solid var(--line-strong);
+  outline-offset: 1px;
+}
+
+.trend-site {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  word-break: break-all;
+}
+
+.trend-summary {
+  margin: 8px 0 12px;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.trend-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.trend-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.trend-tick {
+  fill: var(--ink-soft);
+  font-size: 11px;
+  font-family: var(--font-body);
+}
+
+.trend-line {
+  stroke: var(--line-strong);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.trend-point {
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.trend-last {
+  fill: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
+}
+

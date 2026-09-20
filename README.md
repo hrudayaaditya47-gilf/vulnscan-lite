@@ -8,7 +8,7 @@ against any site you're authorized to scan.
 > **Only scan websites you own.** This tool performs passive analysis only.
 
 **Live demo:** https://vulnscan-lite-theta.vercel.app/
-**API:** https://vulnscan-lite-5dzk.onrender.com
+**API health check:** https://vulnscan-lite-5dzk.onrender.com/api/health
 
 ## Project layout
 

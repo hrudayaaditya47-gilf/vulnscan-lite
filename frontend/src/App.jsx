@@ -27,6 +27,8 @@ function gradeTier(grade) {
   return 'low'
 }
 
+const TIER_COLOR = { high: 'var(--pass)', mid: 'var(--warn)', low: 'var(--fail)' }
+
 /* ---------- gauge ---------- */
 
 function ScoreGauge({ score, grade }) {
@@ -225,6 +227,99 @@ function AuthBar({ user, onLoggedIn, onLoggedOut, view, setView }) {
   )
 }
 
+/* ---------- score trend ---------- */
+
+function ScoreTrend({ entries }) {
+  // The chart plots oldest to newest, so sort by scan date.
+  const counts = {}
+  entries.forEach((e) => { counts[e.url] = (counts[e.url] || 0) + 1 })
+  const sites = Object.keys(counts)
+  // Default to the site scanned most often (ties go to the most recent one).
+  const defaultSite = sites.reduce((best, s) => (counts[s] > counts[best] ? s : best), sites[0])
+  const [picked, setPicked] = useState(null)
+  const site = sites.includes(picked) ? picked : defaultSite
+
+  const points = entries
+    .filter((e) => e.url === site)
+    .sort((a, b) => new Date(a.scanned_at) - new Date(b.scanned_at))
+  const n = points.length
+
+  const W = 600
+  const H = 220
+  const pad = { top: 24, right: 20, bottom: 30, left: 38 }
+  const innerW = W - pad.left - pad.right
+  const innerH = H - pad.top - pad.bottom
+  const x = (i) => (n === 1 ? pad.left + innerW / 2 : pad.left + (i * innerW) / (n - 1))
+  const y = (score) => pad.top + innerH * (1 - score / 100)
+  const formatDay = (iso) => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+
+  const first = points[0].score
+  const last = points[n - 1].score
+  const change = last - first
+
+  let summary
+  if (n < 2) summary = 'Save at least two scans of this site to see how its score changes.'
+  else if (change > 0) summary = `Score rose from ${first} to ${last} (up ${change} points) over ${n} scans.`
+  else if (change < 0) summary = `Score fell from ${first} to ${last} (down ${-change} points) over ${n} scans.`
+  else summary = `Score held at ${last} over ${n} scans.`
+
+  return (
+    <section className="trend">
+      <div className="trend-head">
+        <h3>Score over time</h3>
+        {sites.length > 1 ? (
+          <select
+            className="trend-select"
+            value={site}
+            onChange={(e) => setPicked(e.target.value)}
+            aria-label="Site to chart"
+          >
+            {sites.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        ) : (
+          <span className="trend-site mono-cell">{site}</span>
+        )}
+      </div>
+
+      <p className="trend-summary">{summary}</p>
+
+      {n >= 2 && (
+        <svg className="trend-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={summary}>
+          {[0, 25, 50, 75, 100].map((tick) => (
+            <g key={tick}>
+              <line x1={pad.left} x2={W - pad.right} y1={y(tick)} y2={y(tick)} className="trend-grid" />
+              <text x={pad.left - 8} y={y(tick) + 4} textAnchor="end" className="trend-tick">{tick}</text>
+            </g>
+          ))}
+
+          <polyline
+            className="trend-line"
+            fill="none"
+            points={points.map((p, i) => `${x(i)},${y(p.score)}`).join(' ')}
+          />
+
+          {points.map((p, i) => (
+            <circle
+              key={p.id}
+              className="trend-point"
+              cx={x(i)}
+              cy={y(p.score)}
+              r={i === n - 1 ? 6 : 4}
+              fill={TIER_COLOR[gradeTier(p.grade)]}
+            >
+              <title>{`${formatDay(p.scanned_at)}: ${p.score}/100 (${p.grade})`}</title>
+            </circle>
+          ))}
+
+          <text x={x(n - 1)} y={y(last) - 12} textAnchor="middle" className="trend-last">{last}</text>
+          <text x={pad.left} y={H - 8} textAnchor="start" className="trend-tick">{formatDay(points[0].scanned_at)}</text>
+          <text x={W - pad.right} y={H - 8} textAnchor="end" className="trend-tick">{formatDay(points[n - 1].scanned_at)}</text>
+        </svg>
+      )}
+    </section>
+  )
+}
+
 /* ---------- history ---------- */
 
 function HistoryView({ onSelect }) {
@@ -243,24 +338,27 @@ function HistoryView({ onSelect }) {
   if (entries.length === 0) return <p className="muted">No scans saved yet. Run a scan and save it to see it here.</p>
 
   return (
-    <table className="history-table">
-      <thead>
-        <tr><th>Site</th><th>Score</th><th>Grade</th><th>Scanned</th><th></th></tr>
-      </thead>
-      <tbody>
-        {entries.map((entry) => (
-          <tr key={entry.id}>
-            <td className="mono-cell">{entry.url}</td>
-            <td>{entry.score}/100</td>
-            <td>
-              <span className="grade-chip" data-tier={gradeTier(entry.grade)}>{entry.grade}</span>
-            </td>
-            <td className="muted">{new Date(entry.scanned_at).toLocaleDateString()}</td>
-            <td><button className="link-btn" onClick={() => onSelect(entry.id)}>View</button></td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <>
+      <ScoreTrend entries={entries} />
+      <table className="history-table">
+        <thead>
+          <tr><th>Site</th><th>Score</th><th>Grade</th><th>Scanned</th><th></th></tr>
+        </thead>
+        <tbody>
+          {entries.map((entry) => (
+            <tr key={entry.id}>
+              <td className="mono-cell">{entry.url}</td>
+              <td>{entry.score}/100</td>
+              <td>
+                <span className="grade-chip" data-tier={gradeTier(entry.grade)}>{entry.grade}</span>
+              </td>
+              <td className="muted">{new Date(entry.scanned_at).toLocaleDateString()}</td>
+              <td><button className="link-btn" onClick={() => onSelect(entry.id)}>View</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
   )
 }
 
